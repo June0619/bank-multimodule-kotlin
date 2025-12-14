@@ -3,7 +3,6 @@ package me.jwjung.bank.common
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.http.ResponseEntity
 
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ApiResponse<T>(
     val success : Boolean,
@@ -25,6 +24,15 @@ data class ApiResponse<T>(
             return ResponseEntity.badRequest().body(
                 ApiResponse(false, msg, null, Error(errCode, details, path))
             )
+        }
+
+        fun <T> exceptionError(
+            msg : String,
+            errCode : String? = null,
+            details : Any? = null,
+            path : String? = null
+        ) : ApiResponse<T> {
+            return ApiResponse(false, msg, null, Error(errCode, details, path))
         }
     }
 }
