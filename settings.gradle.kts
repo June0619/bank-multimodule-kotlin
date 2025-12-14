@@ -6,3 +6,4 @@ rootProject.name = "bank-multimodule"
 
 include(":bank-api")
 include(":bank-core")
+include(":bank-domain")
