@@ -33,6 +33,12 @@ subprojects {
         apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     }
 
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.2.3")
+        }
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }
