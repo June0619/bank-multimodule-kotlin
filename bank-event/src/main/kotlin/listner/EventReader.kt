@@ -29,7 +29,9 @@ class EventReader(
 
     }
 
+    @EventListener
     @Async("taskExecutor")
+    @Retryable(value = [Exception::class], maxAttempts = 3, backoff = Backoff(delay = 1000))
     fun handleTransactionCreated(event : TransactionCreatedEvent) {
 
     }
