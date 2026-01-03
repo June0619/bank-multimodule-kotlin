@@ -28,6 +28,6 @@ class TxAdvice (
     private val advice : TransactionAdvice
 ) {
     fun <T> run (func: () -> T?) : T? = advice.run(func)
-    fun <T> readOnly (func: () -> T?) : T? = advice.run(func)
-    fun <T> renNew (func: () -> T?) : T? = advice.run(func)
+    fun <T> readOnly (func: () -> T?) : T? = advice.readOnly(func)
+    fun <T> renNew (func: () -> T?) : T? = advice.renNew(func)
 }
