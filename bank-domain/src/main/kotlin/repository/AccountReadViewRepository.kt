@@ -1,4 +1,4 @@
-package repository
+package me.jwjung.bank.domain.repository
 
 import entity.AccountReadView
 import org.springframework.data.jpa.repository.JpaRepository

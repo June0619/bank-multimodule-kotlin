@@ -1,4 +1,4 @@
-package metrics
+package me.jwjung.bank.monitoring.metrics
 
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.DistributionSummary

@@ -1,4 +1,4 @@
-package repository
+package me.jwjung.bank.domain.repository
 
 import entity.TransactionReadView
 import entity.TransactionType

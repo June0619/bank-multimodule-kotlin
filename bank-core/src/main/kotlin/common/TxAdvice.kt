@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 interface TransactionRunner {
     fun <T> run (func: () -> T?) : T? // @Transactional
     fun <T> readOnly (func: () -> T?) : T? // @Transactional(readOnly = true)
-    fun <T> renNew (func: () -> T?) : T? // @Transactional(Propagation.REQUIRES_NEW)
+    fun <T> runNew (func: () -> T?) : T? // @Transactional(Propagation.REQUIRES_NEW)
 
 
 }
@@ -20,7 +20,7 @@ class TransactionAdvice : TransactionRunner {
     @Transactional(readOnly = true)
     override fun <T> readOnly(func: () -> T?): T? = func()
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    override fun <T> renNew(func: () -> T?): T? = func()
+    override fun <T> runNew(func: () -> T?): T? = func()
 }
 
 @Component
@@ -29,5 +29,5 @@ class TxAdvice (
 ) {
     fun <T> run (func: () -> T?) : T? = advice.run(func)
     fun <T> readOnly (func: () -> T?) : T? = advice.readOnly(func)
-    fun <T> renNew (func: () -> T?) : T? = advice.renNew(func)
+    fun <T> runNew (func: () -> T?) : T? = advice.runNew(func)
 }

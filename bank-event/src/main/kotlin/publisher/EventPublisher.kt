@@ -1,6 +1,7 @@
 package publisher
 
 import event.DomainEvent
+import me.jwjung.bank.monitoring.metrics.BankMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Async
@@ -15,8 +16,8 @@ interface EventPublisher {
 
 @Component
 class EventPublisherImpl(
-    private val eventPublisher: ApplicationEventPublisher
-    // TODO metrics
+    private val eventPublisher: ApplicationEventPublisher,
+    private val metrics: BankMetrics
 ) : EventPublisher {
     private val logger = LoggerFactory.getLogger(EventPublisherImpl::class.java)
 
@@ -24,6 +25,7 @@ class EventPublisherImpl(
         logger.info("Publishing event: $event")
         try {
             eventPublisher.publishEvent(event)
+            metrics.incrementEventPublished(event::class.simpleName!! ?: "Unknown")
         } catch (e: Exception) {
             logger.error("Error publishing event!", e)
         }
@@ -33,6 +35,7 @@ class EventPublisherImpl(
         logger.info("Publishing event: $event")
         try {
             eventPublisher.publishEvent(event)
+            metrics.incrementEventPublished(event::class.simpleName!! ?: "Unknown")
         } catch (e: Exception) {
             logger.error("Error publishing event!", e)
         }
@@ -44,6 +47,7 @@ class EventPublisherImpl(
             logger.info("Publishing event: $event")
             try {
                 eventPublisher.publishEvent(event)
+                metrics.incrementEventPublished(event::class.simpleName!! ?: "Unknown")
             } catch (e: Exception) {
                 logger.error("Error publishing event!", e)
             }
@@ -56,6 +60,7 @@ class EventPublisherImpl(
             logger.info("Publishing event: $event")
             try {
                 eventPublisher.publishEvent(event)
+                metrics.incrementEventPublished(event::class.simpleName!! ?: "Unknown")
             } catch (e: Exception) {
                 logger.error("Error publishing event!", e)
             }
