@@ -98,67 +98,74 @@ class AccountWriteService (
         )!!
     }
 
-    private fun transferInternal(fromAccount: String, toAccount: String, amount: BigDecimal): ResponseEntity<ApiResponse<String>>? {
+    private fun transferInternal(
+        fromAccount: String,
+        toAccount: String,
+        amount: BigDecimal
+    ): ResponseEntity<ApiResponse<String>> { // 리턴 타입의 '?' 제거 (성공/실패는 ApiResponse로 처리)
+
         return txAdvice.run {
+            // 1. 조회 (Entity는 영속 상태가 됨)
             val fromAcct = accountRepository.findByAccountNumber(fromAccount)
                 ?: return@run ApiResponse.error("From Account Not Found")
-
-            if (fromAcct.balance < amount) {
-                return@run ApiResponse.error("From Account Balance Limit")
-            }
 
             val toAcct = accountRepository.findByAccountNumber(toAccount)
                 ?: return@run ApiResponse.error("To Account Not Found")
 
-            fromAcct.balance = fromAcct.balance.subtract(amount)
-            toAcct.balance = toAcct.balance.add(amount)
+            // 2. 밸리데이션
+            if (fromAcct.balance < amount) {
+                return@run ApiResponse.error("From Account Balance Limit")
+            }
 
+            // 3. 비즈니스 로직 (Dirty Checking으로 자동 Update)
+            fromAcct.balance -= amount // 코틀린 연산자 오버로딩 활용 가능 (BigDecimal도 -, + 가능)
+            toAcct.balance += amount
+
+            // 4. 히스토리 저장 (신규 생성이므로 save 필요)
+            // apply를 써서 코드 응집도를 높임
             val fromTransaction = Transaction(
                 account = fromAcct,
                 amount = amount,
                 type = TransactionType.TRANSFER,
                 description = "Transfer From"
-            )
-
-            transactionRepository.save(fromTransaction)
-
-            metrics.incrementTransaction("TRANSFER")
-
-            eventPublisher.publishAsync(
-                TransactionCreatedEvent(
-                    transactionId = fromTransaction.id,
-                    fromAcct.id,
-                    type = TransactionType.TRANSFER,
-                    description = "Transaction Created",
-                    amount = amount,
-                    balanceAfter = fromAcct.balance
-                )
-            )
+            ).also { transactionRepository.save(it) } // save 즉시 ID 주입됨
 
             val toTransaction = Transaction(
                 account = toAcct,
                 amount = amount,
                 type = TransactionType.TRANSFER,
                 description = "Transfer To"
-            )
+            ).also { transactionRepository.save(it) }
 
-            transactionRepository.save(toTransaction)
+            // 5. 메트릭 처리
+            metrics.incrementTransaction("TRANSFER")
+            metrics.incrementTransaction("TRANSFER")
 
-            eventPublisher.publishAsync(
-                TransactionCreatedEvent(
-                    transactionId = toTransaction.id,
-                    toAcct.id,
-                    type = TransactionType.TRANSFER,
-                    description = "Transaction Created",
-                    amount = amount,
-                    balanceAfter = fromAcct.balance
-                )
-            )
+            // 6. 이벤트 발행
+            // 팁: 여기서 바로 publishAsync 하지 않고,
+            // ApplicationEventPublisher로 던지고 리스너에서 @TransactionalEventListener(phase = AFTER_COMMIT) 처리하는게 베스트.
+            // 하지만 비동기(Async) 메서드라면 트랜잭션과 무관하게 돌테니 여기서 호출해도 큰 문제는 없음 (단, 데이터 일관성 주의)
+            publishTransactionEvent(fromTransaction, fromAcct.balance)
+            publishTransactionEvent(toTransaction, toAcct.balance)
 
             return@run ApiResponse.success<String>(
                 data = "Transfer Completed",
                 msg = "Transfer Completed"
             )
-        }
+        }!! // null이 나올 수 없는 구조이므로 !! 사용
+    }
+
+    // 중복 코드 제거용 헬퍼 함수
+    private fun publishTransactionEvent(tx: Transaction, balance: BigDecimal) {
+        eventPublisher.publishAsync(
+            TransactionCreatedEvent(
+                transactionId = tx.id, // save() 이후라 ID 존재함
+                accountId = tx.account.id,
+                type = tx.type,
+                description = tx.description,
+                amount = tx.amount,
+                balanceAfter = balance
+            )
+        )
     }
 }
