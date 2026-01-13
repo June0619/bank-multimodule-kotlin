@@ -63,10 +63,10 @@ class DistributedLockService(
     }
 
     fun <T> executeWithTransactionLock(
-        from: String,
-        to: String,
-        action: () -> T
-    ): T {
+        from : String,
+        to : String,
+        action : () -> T
+    ) : T {
         val sorted = listOf(from, to).sorted()
         val lockKey = "transaction:lock:${sorted[0]}:${sorted[1]}"
         return executeWithLock(lockKey, action)

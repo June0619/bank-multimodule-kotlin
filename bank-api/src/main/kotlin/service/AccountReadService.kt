@@ -63,7 +63,7 @@ class AccountReadService(
                 }!!
             },
             fallback = {exception ->
-                logger.warn("Get Account Failed", exception)
+                logger.warn("Get Transaction History Failed", exception)
                 ApiResponse.error(
                     msg = "Get Account Failed",
                 )
@@ -80,7 +80,7 @@ class AccountReadService(
                 }!!
             },
             fallback = {exception ->
-                logger.warn("Get Account Failed", exception)
+                logger.warn("Get All Account Failed", exception)
                 ApiResponse.error(
                     msg = "Get Account Failed",
                 )
